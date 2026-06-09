@@ -696,11 +696,40 @@ document.getElementById('manAdd').onclick=async()=>{
 
 /* ---------- 식단 (남은 칼로리 맞춤) ---------- */
 const MEALS={
-  b:[{n:'오트밀 + 블루베리',k:280},{n:'계란 2개 + 통밀토스트',k:320},{n:'그릭요거트 + 견과',k:260},{n:'단백질 쉐이크 + 바나나',k:300}],
-  l:[{n:'닭가슴살 샐러드볼',k:430},{n:'현미밥 + 두부조림',k:480},{n:'연어 포케',k:460},{n:'잡곡밥 + 닭가슴살 + 나물',k:520}],
-  d:[{n:'소고기 야채볶음 + 곤약밥',k:420},{n:'대구살 구이 + 브로콜리',k:380},{n:'두부 스테이크',k:350},{n:'닭가슴살 스테이크 + 야채',k:400}],
-  s:[{n:'바나나 + 아몬드',k:180},{n:'단백질 쉐이크',k:150},{n:'방울토마토 + 치즈',k:120},{n:'(간식 생략)',k:0}],
+  b:[
+    {n:'오트밀 + 블루베리',k:280,t:'5분',ing:['오트밀','냉동 블루베리']},
+    {n:'계란 2개 + 통밀토스트',k:320,t:'10분',ing:['계란 30구','통밀 식빵']},
+    {n:'그릭요거트 + 견과',k:260,t:'3분',ing:['그릭요거트','믹스넛']},
+    {n:'단백질 쉐이크 + 바나나',k:300,t:'3분',ing:['단백질 파우더 1kg','바나나']}
+  ],
+  l:[
+    {n:'닭가슴살 샐러드볼',k:430,t:'15분',ing:['냉동 닭가슴살 1kg','샐러드 채소','발사믹 드레싱']},
+    {n:'현미밥 + 두부조림',k:480,t:'25분',ing:['현미','두부','간장']},
+    {n:'연어 포케',k:460,t:'15분',ing:['생연어','샐러드 채소','현미']},
+    {n:'잡곡밥 + 닭가슴살 + 나물',k:520,t:'20분',ing:['잡곡','냉동 닭가슴살 1kg','시금치']}
+  ],
+  d:[
+    {n:'소고기 야채볶음 + 곤약밥',k:420,t:'20분',ing:['소고기 불고기용','곤약밥 10팩','야채믹스']},
+    {n:'대구살 구이 + 브로콜리',k:380,t:'20분',ing:['냉동 대구살','손질 브로콜리 500g']},
+    {n:'두부 스테이크',k:350,t:'15분',ing:['두부','양파','스테이크 소스']},
+    {n:'닭가슴살 스테이크 + 야채',k:400,t:'15분',ing:['냉동 닭가슴살 1kg','손질 브로콜리 500g']}
+  ],
+  s:[
+    {n:'바나나 + 아몬드',k:180,t:'1분',ing:['바나나','아몬드']},
+    {n:'단백질 쉐이크',k:150,t:'2분',ing:['단백질 파우더 1kg']},
+    {n:'방울토마토 + 치즈',k:120,t:'1분',ing:['방울토마토','스트링치즈']},
+    {n:'(간식 생략)',k:0,t:'',ing:[]}
+  ],
 };
+const ING_EMOJI={'오트밀':'🥣','냉동 블루베리':'🫐','계란 30구':'🥚','통밀 식빵':'🍞','그릭요거트':'🥛','믹스넛':'🥜',
+  '단백질 파우더 1kg':'🥛','바나나':'🍌','냉동 닭가슴살 1kg':'🍗','샐러드 채소':'🥬','발사믹 드레싱':'🫙','현미':'🌾',
+  '두부':'🧈','간장':'🫙','생연어':'🐟','잡곡':'🌾','시금치':'🥬','소고기 불고기용':'🥩','곤약밥 10팩':'🍚',
+  '야채믹스':'🥗','냉동 대구살':'🐟','손질 브로콜리 500g':'🥦','양파':'🧅','스테이크 소스':'🫙','아몬드':'🥜',
+  '방울토마토':'🍅','스트링치즈':'🧀'};
+function getPlan(){
+  const p=JSON.parse(localStorage.getItem('fk_plan')||'null');
+  return (p && p.d===todayStr()) ? p : null;
+}
 document.getElementById('genPlan').onclick=()=>{
   ensureToday();
   const p=DB.profile;
@@ -720,6 +749,10 @@ document.getElementById('genPlan').onclick=()=>{
     if(diff<bestDiff){bestDiff=diff;best={b,l,d,s,sum};}
   }
   const {b,l,d,s,sum}=best;
+  // 식단 저장 → 요리·재료 탭이 이 식단 기준으로 바뀜
+  localStorage.setItem('fk_plan', JSON.stringify({d:todayStr(), items:[
+    {slot:'아침',em:'🌅',...b},{slot:'점심',em:'☀️',...l},{slot:'저녁',em:'🌙',...d},{slot:'간식',em:'🍎',...s}
+  ].filter(m=>m.k>0)}));
   const block=(t,m,em)=>m.k===0?'':`<div class="meal-block"><div class="mh"><div>${em} ${t}</div><span>${m.k} kcal</span></div>
     <ul><li>${m.n}</li></ul></div>`;
   const basis = remain>=600
@@ -730,42 +763,55 @@ document.getElementById('genPlan').onclick=()=>{
     block('아침',b,'🌅')+block('점심',l,'☀️')+block('저녁',d,'🌙')+block('간식',s,'🍎')+
     `<div class="card" style="background:var(--card2)"><div style="display:flex;justify-content:space-between;font-size:14px">
       <b>합계</b><b style="color:var(--pri)">${sum} kcal</b></div>
-      <div class="note">기준 ${goal}kcal 대비 ${Math.round(sum/goal*100)}% · ${sum<=goal?'목표 범위 내 👍':'약간 초과'}</div></div>`;
+      <div class="note">기준 ${goal}kcal 대비 ${Math.round(sum/goal*100)}% · ${sum<=goal?'목표 범위 내 👍':'약간 초과'}</div></div>
+    <button class="btn" onclick="document.querySelector('nav button[data-v=shop]').click()">이 식단의 요리법·재료 보기 🛒</button>`;
 };
 
 /* ---------- 요리·유통 ---------- */
-/* 쿠팡파트너스 제휴링크 — link.coupang.com/a/... 짧은 링크로 교체하면 수익 연결됨 */
+/* 쿠팡파트너스 제휴링크 — 재료명: 'https://link.coupang.com/a/...' 형태로 채우면 수익 연결됨.
+   없는 재료는 자동으로 쿠팡 일반 검색으로 연결됩니다. */
 const COUPANG_LINKS={
-  chicken:  '',  // 냉동 닭가슴살 1kg
-  broccoli: '',  // 손질 브로콜리 500g
-  konjac:   '',  // 곤약밥 10팩
-  protein:  '',  // 단백질 파우더 1kg
+  '냉동 닭가슴살 1kg': '',
+  '손질 브로콜리 500g': '',
+  '곤약밥 10팩': '',
+  '단백질 파우더 1kg': '',
 };
 function ytLink(q){ return 'https://www.youtube.com/results?search_query='+encodeURIComponent(q); }
 function coupangSearch(q){ return 'https://www.coupang.com/np/search?q='+encodeURIComponent(q); }
 function renderShop(){
-  const recipes=[
-    {em:'🥗',n:'닭가슴살 포케볼',t:'15분 · 430kcal',d:'고단백 저탄수, 점심 추천',q:'닭가슴살 포케볼 만들기 레시피'},
-    {em:'🍲',n:'두부 김치찌개',t:'20분 · 320kcal',d:'나트륨 낮춘 다이어트 버전',q:'다이어트 두부 김치찌개 레시피'},
-    {em:'🥣',n:'오버나이트 오트밀',t:'5분 · 280kcal',d:'전날 만들어두는 아침식사',q:'오버나이트 오트밀 만들기'},
-  ];
-  document.getElementById('recipeOut').innerHTML=recipes.map(r=>
+  const plan=getPlan();
+  let recipes, ings;
+  if(plan){
+    // 오늘 짠 식단 기준
+    recipes = plan.items.map(m=>({em:m.em,n:m.n,t:(m.t?m.t+' · ':'')+m.k+'kcal',d:m.slot,q:m.n.replace(/\+/g,' ')+' 만들기 레시피'}));
+    ings = [...new Set(plan.items.flatMap(m=>m.ing||[]))];
+  }else{
+    recipes=[
+      {em:'🥗',n:'닭가슴살 샐러드볼',t:'15분 · 430kcal',d:'예시',q:'닭가슴살 샐러드볼 레시피'},
+      {em:'🍲',n:'소고기 야채볶음 + 곤약밥',t:'20분 · 420kcal',d:'예시',q:'소고기 야채볶음 레시피'},
+    ];
+    ings=['냉동 닭가슴살 1kg','손질 브로콜리 500g','곤약밥 10팩','단백질 파우더 1kg'];
+  }
+  const head = plan
+    ? `<div class="note ok" style="margin:0 0 12px">✅ 오늘 짠 식단 기준으로 구성됐어요</div>`
+    : `<div class="note" style="margin:0 0 12px">💡 <b>식단 탭에서 식단을 짜면</b> 그 식단의 요리법·재료로 자동으로 바뀝니다</div>`;
+  document.getElementById('recipeOut').innerHTML= head + recipes.map(r=>
     `<div class="shop"><div class="em">${r.em}</div><div class="info"><b>${r.n}</b>
-     <small>${r.t} · ${r.d}</small></div><a href="${ytLink(r.q)}" target="_blank" rel="noopener">▶ 유튜브 ›</a></div>`).join('');
-  const items=[
-    {em:'🍗',n:'냉동 닭가슴살 1kg',s:'쿠팡',key:'chicken',q:'냉동 닭가슴살 1kg'},
-    {em:'🥦',n:'손질 브로콜리 500g',s:'쿠팡',key:'broccoli',q:'손질 브로콜리 500g'},
-    {em:'🍚',n:'곤약밥 10팩',s:'쿠팡',key:'konjac',q:'곤약밥 10팩'},
-    {em:'🥛',n:'단백질 파우더 1kg',s:'쿠팡',key:'protein',q:'단백질 파우더 1kg'},
-  ];
-  document.getElementById('shopOut').innerHTML=items.map(i=>{
-    const url = COUPANG_LINKS[i.key] || coupangSearch(i.q);
-    const tag = COUPANG_LINKS[i.key] ? '제휴' : '검색';
-    return `<div class="shop"><div class="em">${i.em}</div><div class="info"><b>${i.n}</b>
-     <small>${i.s} · ${tag}</small></div><a href="${url}" target="_blank" rel="noopener">구매 ›</a></div>`;
+     <small>${r.d} · ${r.t}</small></div><a href="${ytLink(r.q)}" target="_blank" rel="noopener">▶ 유튜브 ›</a></div>`).join('');
+  document.getElementById('shopOut').innerHTML= ings.map(n=>{
+    const url = COUPANG_LINKS[n] || coupangSearch(n);
+    const tag = COUPANG_LINKS[n] ? '제휴' : '검색';
+    return `<div class="shop"><div class="em">${ING_EMOJI[n]||'🛒'}</div><div class="info"><b>${n}</b>
+     <small>쿠팡 · ${tag}</small></div><a href="${url}" target="_blank" rel="noopener">구매 ›</a></div>`;
   }).join('');
+  window._planIngs = ings;
 }
-document.getElementById('cartBtn').onclick=()=>window.open(COUPANG_LINKS.chicken||coupangSearch('다이어트 식단 재료'),'_blank');
+document.getElementById('cartBtn').onclick=()=>{
+  const ings = window._planIngs||[];
+  if(!ings.length){toast('먼저 식단을 짜보세요');return}
+  // 전체 재료를 한 검색어로 묶어 쿠팡 열기 (개별 링크는 위 목록에서)
+  window.open(COUPANG_LINKS[ings[0]]||coupangSearch(ings.slice(0,3).join(' ')),'_blank');
+};
 
 /* ---------- API 키 ---------- */
 function updateApiNote(){
