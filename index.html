@@ -734,26 +734,38 @@ document.getElementById('genPlan').onclick=()=>{
 };
 
 /* ---------- 요리·유통 ---------- */
+/* 쿠팡파트너스 제휴링크 — link.coupang.com/a/... 짧은 링크로 교체하면 수익 연결됨 */
+const COUPANG_LINKS={
+  chicken:  '',  // 냉동 닭가슴살 1kg
+  broccoli: '',  // 손질 브로콜리 500g
+  konjac:   '',  // 곤약밥 10팩
+  protein:  '',  // 단백질 파우더 1kg
+};
+function ytLink(q){ return 'https://www.youtube.com/results?search_query='+encodeURIComponent(q); }
+function coupangSearch(q){ return 'https://www.coupang.com/np/search?q='+encodeURIComponent(q); }
 function renderShop(){
   const recipes=[
-    {em:'🥗',n:'닭가슴살 포케볼',t:'15분 · 430kcal',d:'고단백 저탄수, 점심 추천'},
-    {em:'🍲',n:'두부 김치찌개',t:'20분 · 320kcal',d:'나트륨 낮춘 다이어트 버전'},
-    {em:'🥣',n:'오버나이트 오트밀',t:'5분 · 280kcal',d:'전날 만들어두는 아침식사'},
+    {em:'🥗',n:'닭가슴살 포케볼',t:'15분 · 430kcal',d:'고단백 저탄수, 점심 추천',q:'닭가슴살 포케볼 만들기 레시피'},
+    {em:'🍲',n:'두부 김치찌개',t:'20분 · 320kcal',d:'나트륨 낮춘 다이어트 버전',q:'다이어트 두부 김치찌개 레시피'},
+    {em:'🥣',n:'오버나이트 오트밀',t:'5분 · 280kcal',d:'전날 만들어두는 아침식사',q:'오버나이트 오트밀 만들기'},
   ];
   document.getElementById('recipeOut').innerHTML=recipes.map(r=>
     `<div class="shop"><div class="em">${r.em}</div><div class="info"><b>${r.n}</b>
-     <small>${r.t} · ${r.d}</small></div><a href="#" onclick="toast('레시피 상세는 추후 연결');return false">보기 ›</a></div>`).join('');
+     <small>${r.t} · ${r.d}</small></div><a href="${ytLink(r.q)}" target="_blank" rel="noopener">▶ 유튜브 ›</a></div>`).join('');
   const items=[
-    {em:'🍗',n:'냉동 닭가슴살 1kg',p:'12,900원',s:'쿠팡 로켓배송'},
-    {em:'🥦',n:'손질 브로콜리 500g',p:'4,500원',s:'마켓컬리'},
-    {em:'🍚',n:'곤약밥 10팩',p:'9,900원',s:'네이버 스마트스토어'},
-    {em:'🥛',n:'단백질 파우더 1kg',p:'29,000원',s:'제휴 파트너'},
+    {em:'🍗',n:'냉동 닭가슴살 1kg',s:'쿠팡',key:'chicken',q:'냉동 닭가슴살 1kg'},
+    {em:'🥦',n:'손질 브로콜리 500g',s:'쿠팡',key:'broccoli',q:'손질 브로콜리 500g'},
+    {em:'🍚',n:'곤약밥 10팩',s:'쿠팡',key:'konjac',q:'곤약밥 10팩'},
+    {em:'🥛',n:'단백질 파우더 1kg',s:'쿠팡',key:'protein',q:'단백질 파우더 1kg'},
   ];
-  document.getElementById('shopOut').innerHTML=items.map(i=>
-    `<div class="shop"><div class="em">${i.em}</div><div class="info"><b>${i.n}</b>
-     <small>${i.s}</small></div><a href="#" onclick="toast('제휴 링크 연결 예정');return false">${i.p} ›</a></div>`).join('');
+  document.getElementById('shopOut').innerHTML=items.map(i=>{
+    const url = COUPANG_LINKS[i.key] || coupangSearch(i.q);
+    const tag = COUPANG_LINKS[i.key] ? '제휴' : '검색';
+    return `<div class="shop"><div class="em">${i.em}</div><div class="info"><b>${i.n}</b>
+     <small>${i.s} · ${tag}</small></div><a href="${url}" target="_blank" rel="noopener">구매 ›</a></div>`;
+  }).join('');
 }
-document.getElementById('cartBtn').onclick=()=>toast('제휴 쇼핑몰 장바구니 연동 예정입니다');
+document.getElementById('cartBtn').onclick=()=>window.open(COUPANG_LINKS.chicken||coupangSearch('다이어트 식단 재료'),'_blank');
 
 /* ---------- API 키 ---------- */
 function updateApiNote(){
