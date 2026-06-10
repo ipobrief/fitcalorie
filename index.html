@@ -194,6 +194,8 @@
     <div class="card">
       <h2><span class="dot"></span>오늘의 맞춤 식단</h2>
       <p style="font-size:12px;color:var(--sub)">남은 목표 칼로리에 맞춰 식단을 구성합니다.</p>
+      <label>내가 주로 먹는 재료 (쉼표로 구분 · 식단에 우선 반영)</label>
+      <input id="iPrefs" placeholder="예: 닭가슴살, 계란, 브로콜리, 단백질쉐이크" />
       <button class="btn ghost" id="genPlan">식단 새로 짜기 🔄 (1·2·3안)</button>
       <button class="btn" id="aiPlan" style="display:none">🤖 AI 맞춤 식단 받기</button>
       <div id="planOut" style="margin-top:14px"></div>
@@ -780,14 +782,26 @@ function planGoal(){
     : (eaten>0?`오늘 남은 칼로리(${remain}kcal)가 적어 <b>내일 하루 기준(${target}kcal)</b>으로 구성`:`하루 목표 <b>${target}kcal</b> 기준 구성`);
   return {goal,basis};
 }
-function pickCombo(goal,avoid){
+function getPrefs(){
+  const el=document.getElementById('iPrefs');
+  const v=(el?el.value:'').trim();
+  if(v){ localStorage.setItem('fk_prefs',v); return v.split(',').map(s=>s.trim()).filter(Boolean); }
+  return (localStorage.getItem('fk_prefs')||'').split(',').map(s=>s.trim()).filter(Boolean);
+}
+function prefScore(meal,prefs){
+  // 메뉴명·재료에 선호 재료가 들어있으면 가점
+  const hay=(meal.n+' '+(meal.ing||[]).join(' '));
+  return prefs.filter(p=>hay.indexOf(p)>=0).length;
+}
+function pickCombo(goal,avoid,prefs){
   const rand=a=>a[Math.floor(Math.random()*a.length)];
   let best=null,bestDiff=1e9;
   for(let i=0;i<250;i++){
     const b=rand(MEALS.b),l=rand(MEALS.l),d=rand(MEALS.d),s=rand(MEALS.s);
     const sum=b.k+l.k+d.k+s.k;
     const overlap=[b.n,l.n,d.n].filter(n=>avoid.has(n)).length; // 이전 안과 겹치면 패널티 → 다양성
-    const diff=Math.abs(goal-sum)+(sum>goal?80:0)+overlap*120;
+    const pref=[b,l,d,s].reduce((a,m)=>a+prefScore(m,prefs),0);   // 선호 재료 포함 시 가점
+    const diff=Math.abs(goal-sum)+(sum>goal?80:0)+overlap*120-pref*100;
     if(diff<bestDiff){bestDiff=diff;best={b,l,d,s,sum};}
   }
   return best;
@@ -814,13 +828,15 @@ window.selectPlan=function(idx){
 };
 document.getElementById('genPlan').onclick=()=>{
   const ctx=planGoal(); window._planCtx=ctx;
+  const prefs=getPrefs();
   const avoid=new Set(); const cands=[];
   for(let i=0;i<3;i++){
-    const c=pickCombo(ctx.goal,avoid);
+    const c=pickCombo(ctx.goal,avoid,prefs);
     [c.b.n,c.l.n,c.d.n].forEach(n=>avoid.add(n));
     cands.push({label:(i+1)+'안', items:comboToItems(c), sum:c.sum});
   }
   window._cands=cands;
+  if(prefs.length) toast('주식 재료 우선 반영: '+prefs.slice(0,3).join(', ')+(prefs.length>3?' 외':''));
   selectPlan(0);
 };
 /* AI 맞춤 식단 (API 키 필요) */
@@ -829,6 +845,10 @@ document.getElementById('aiPlan').onclick=async()=>{
   const btn=document.getElementById('aiPlan');
   btn.textContent='AI가 식단 짜는 중...'; btn.disabled=true;
   const ctx=planGoal(); window._planCtx=ctx;
+  const prefs=getPrefs();
+  const prefLine = prefs.length
+    ? `\n[중요] 사용자의 주식 재료: ${prefs.join(', ')}. 이 재료들을 식단의 중심으로 사용하세요(최소 2~3끼에 포함). 단, 이 재료들만으로 부족한 영양(식이섬유·비타민·건강한 지방 등)을 나머지 메뉴와 곁들임으로 보완하세요.`
+    : '';
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
@@ -837,7 +857,7 @@ document.getElementById('aiPlan').onclick=async()=>{
       body:JSON.stringify({
         model:'claude-opus-4-8', max_tokens:1500,
         messages:[{role:'user',content:
-          `합계 약 ${ctx.goal}kcal(±5%)의 한국식 다이어트 식단을 짜주세요. 아침/점심/저녁/간식 4끼.\n조건: 고단백, 조리 30분 이내, 한국 마트·쿠팡에서 쉽게 사는 재료, 매번 색다른 메뉴로 창의적으로.\n각 끼니 필드: slot(아침|점심|저녁|간식), n(메뉴명), k(kcal 정수), t(조리시간 예 "15분"), ing(쿠팡 검색용 재료명 배열 2~4개).`}],
+          `합계 약 ${ctx.goal}kcal(±5%)의 한국식 다이어트 식단을 짜주세요. 아침/점심/저녁/간식 4끼.\n조건: 고단백, 조리 30분 이내, 한국 마트·쿠팡에서 쉽게 사는 재료, 매번 색다른 메뉴로 창의적으로.${prefLine}\n각 끼니 필드: slot(아침|점심|저녁|간식), n(메뉴명), k(kcal 정수), t(조리시간 예 "15분"), ing(쿠팡 검색용 재료명 배열 2~4개).`}],
         output_config:{format:{type:'json_schema',schema:{
           type:'object',
           properties:{meals:{type:'array',items:{
@@ -929,6 +949,7 @@ document.getElementById('saveKey').onclick=()=>{
 };
 
 /* ---------- 초기화 ---------- */
+document.getElementById('iPrefs').value = localStorage.getItem('fk_prefs')||'';
 updateApiNote();
 loadProfile();
 renderHome();
