@@ -369,7 +369,7 @@ async function analyzeImage(dataUrl){
       role: 'user',
       content: [
         { type:'image', source:{ type:'base64', media_type:media, data:b64 } },
-        { type:'text', text:'이 사진의 음식을 한국어로 식별하고 영양을 추정해 JSON으로만 답하세요. 여러 음식·반찬이 보이면 한 끼 전체를 합산합니다.\n\n[추정 원칙 - 중요]\n- 보이는 양 그대로, 식당/외식 1인분 기준으로 현실적으로 추정하세요. 절대 과소평가하지 마세요.\n- 조리유, 양념, 소스, 드레싱, 볶음/튀김의 기름, 밥 공기(공기밥 약 300kcal), 국물의 기름까지 모두 포함하세요.\n- 한식 정식/백반/한정식은 보통 700~1100kcal입니다. 고기요리(갈비찜·불고기·제육)나 볶음·튀김이 있으면 더 높습니다.\n- 밥 양을 사진에서 실제로 가늠하세요: 그릇 크기, 수북하게 담겼는지, 평평한지를 보고 추정합니다. 공기밥 1공기는 약 210g·300kcal 기준이며, 수북하거나 큰 그릇이면 1.5~2공기(450~600kcal)로 올려 잡으세요. 밥이 적으면 낮춥니다.\n- 애매하면 낮은 쪽이 아니라 평균~약간 높은 쪽으로 잡으세요.\n\n필드: name(음식명, 한국어), kcal(총 열량), c(탄수화물 g), p(단백질 g), f(지방 g), emoji(이모지 1개). 사진에 음식이 없으면 name을 "음식 아님".' }
+        { type:'text', text:'이 사진의 음식을 한국어로 식별하고 영양을 추정해 JSON으로만 답하세요.\n\n[작업 순서 - 반드시 이 순서대로]\n1. 사진에 보이는 음식·반찬·국·밥을 하나도 빠짐없이 전부 나열하세요 (items 배열). 작은 반찬 하나도 생략 금지.\n2. 각 항목의 칼로리를 개별로 추정하세요.\n3. 전체 합산이 kcal입니다 (items 칼로리의 합과 일치해야 함).\n\n[추정 원칙]\n- 보이는 양 그대로, 식당/외식 1인분 기준으로 현실적으로 추정하세요. 절대 과소평가하지 마세요.\n- 조리유, 양념, 소스, 볶음/튀김의 기름, 국물의 기름까지 각 항목에 포함하세요.\n- 밥 양은 사진에서 가늠: 공기밥 1공기 약 210g·300kcal, 수북하거나 큰 그릇이면 1.5~2공기(450~600kcal)로 올려 잡으세요.\n- 한식 정식/백반/한정식은 항목을 다 합치면 보통 700~1100kcal가 됩니다. 고기·볶음·튀김이 있으면 더 높습니다.\n- 애매하면 평균~약간 높은 쪽으로.\n\n필드: name(전체 요약 음식명, 한국어), items(배열: n=항목명, kcal=항목 열량), kcal(총합), c/p/f(전체 탄단지 g), emoji(이모지 1개). 음식이 없으면 name="음식 아님".' }
       ]
     }],
     output_config: {
@@ -378,10 +378,16 @@ async function analyzeImage(dataUrl){
         schema: {
           type:'object',
           properties:{
-            name:{type:'string'}, kcal:{type:'integer'}, c:{type:'integer'},
+            name:{type:'string'},
+            items:{type:'array', items:{
+              type:'object',
+              properties:{ n:{type:'string'}, kcal:{type:'integer'} },
+              required:['n','kcal'], additionalProperties:false
+            }},
+            kcal:{type:'integer'}, c:{type:'integer'},
             p:{type:'integer'}, f:{type:'integer'}, emoji:{type:'string'}
           },
-          required:['name','kcal','c','p','f','emoji'],
+          required:['name','items','kcal','c','p','f','emoji'],
           additionalProperties:false
         }
       }
@@ -405,7 +411,10 @@ async function analyzeImage(dataUrl){
     const data = await r.json();
     const textBlock = (data.content||[]).find(b=>b.type==='text');
     const food = JSON.parse(textBlock.text);
-    return { name:food.name, kcal:food.kcal||0, c:food.c||0, p:food.p||0, f:food.f||0, em:food.emoji||'🍽️' };
+    // 합계가 내역 합과 어긋나면 내역 합을 신뢰
+    const itemSum = (food.items||[]).reduce((a,x)=>a+(x.kcal||0),0);
+    const kcal = itemSum>0 ? itemSum : (food.kcal||0);
+    return { name:food.name, kcal, c:food.c||0, p:food.p||0, f:food.f||0, em:food.emoji||'🍽️', items:food.items||[] };
   }catch(e){
     toast('AI 분석 실패: '+e.message);
     throw e;
@@ -656,6 +665,8 @@ function renderAnalyzeResult(f,target,eaten){
         <div class="kcal">${f.kcal}</div>
         <button class="ico" id="tweakKcal" title="칼로리 수정">✎</button>
       </div>
+      ${f.items&&f.items.length?`<div class="meal-block" style="margin-top:10px"><div class="mh"><div>🧾 인식된 음식 내역</div><span>${f.items.length}개</span></div>
+        <ul>${f.items.map(x=>`<li><span>${x.n}</span><span>${x.kcal} kcal</span></li>`).join('')}</ul></div>`:''}
       ${target?`<p style="font-size:13px;margin:12px 0 4px">이 음식은 하루 목표의 <b style="color:var(--pri)">${pctOne}%</b></p>
       <div class="bar"><i style="width:${Math.min(pctAll,100)}%"></i></div>
       <p style="font-size:12px;color:var(--sub)">먹으면 누적 ${after} / ${target} kcal (${pctAll}% 도달)</p>`
