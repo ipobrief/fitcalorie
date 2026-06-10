@@ -224,6 +224,7 @@
       <p style="font-size:12px;color:var(--sub);margin-bottom:12px">오늘 식단에 필요한 재료를 한 번에 담아 배송받으세요. (제휴 수익 연결 지점)</p>
       <div id="shopOut"></div>
       <button class="btn" id="cartBtn">🛒 전체 재료 장바구니 담기</button>
+      <div class="note">이 페이지는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</div>
     </div>
   </section>
 
@@ -918,13 +919,65 @@ document.getElementById('aiPlan').onclick=async()=>{
 };
 
 /* ---------- 요리·유통 ---------- */
-/* 쿠팡파트너스 제휴링크 — 재료명: 'https://link.coupang.com/a/...' 형태로 채우면 수익 연결됨.
+/* 쿠팡파트너스 제휴링크 (검색결과 링크 — 품절·가격 리스크 없음).
    없는 재료는 자동으로 쿠팡 일반 검색으로 연결됩니다. */
 const COUPANG_LINKS={
-  '냉동 닭가슴살 1kg': '',
-  '손질 브로콜리 500g': '',
-  '곤약밥 10팩': '',
-  '단백질 파우더 1kg': '',
+  '냉동 닭가슴살 1kg':'https://link.coupang.com/a/esHIXnmFjg',
+  '계란 30구':'https://link.coupang.com/a/esHKfPnklM',
+  '손질 브로콜리 500g':'https://link.coupang.com/a/esHK8sSgDI',
+  '단백질 파우더 1kg':'https://link.coupang.com/a/esHLPydfKS',
+  '곤약밥 10팩':'https://link.coupang.com/a/esHMAdnhbE',
+  '그릭요거트':'https://link.coupang.com/a/esHM8NSKS4',
+  '오트밀':'https://link.coupang.com/a/esHN53vVsa',
+  '현미':'https://link.coupang.com/a/esHOGw6QYS',
+  '잡곡':'https://link.coupang.com/a/esHPeNF8fI',
+  '두부':'https://link.coupang.com/a/esHPLPjowm',
+  '통밀 식빵':'https://link.coupang.com/a/esHQgZdjNs',
+  '바나나':'https://link.coupang.com/a/esHQTm2Puu',
+  '샐러드 채소':'https://link.coupang.com/a/esHRtHY4Sy',
+  '고구마':'https://link.coupang.com/a/esHShkr5wq',
+  '닭가슴살 소시지':'https://link.coupang.com/a/esHS7Rz81Y',
+  '생연어':'https://link.coupang.com/a/esHTGylmKW',
+  '소고기 불고기용':'https://link.coupang.com/a/esHUyZZAuO',
+  '방울토마토':'https://link.coupang.com/a/esHVakJoaa',
+  '아몬드':'https://link.coupang.com/a/esHVJ05y68',
+  '곤약면':'https://link.coupang.com/a/esHWB3o3mC',
+  '냉동 블루베리':'https://link.coupang.com/a/esH8EW8uhE',
+  '믹스넛':'https://link.coupang.com/a/esH9ooETn2',
+  '무가당 두유':'https://link.coupang.com/a/esH9VoF77c',
+  '사과':'https://link.coupang.com/a/esIaueelH2',
+  '양상추':'https://link.coupang.com/a/esIaYXi5RI',
+  '아보카도':'https://link.coupang.com/a/esIbzCxKnI',
+  '프로틴 그래놀라':'https://link.coupang.com/a/esIb9zUIOi',
+  '우유':'https://link.coupang.com/a/esIcDaS60a',
+  '발사믹 드레싱':'https://link.coupang.com/a/esIdayXpiC',
+  '간장':'https://link.coupang.com/a/esIdPeCMM0',
+  '시금치':'https://link.coupang.com/a/esIegtltFA',
+  '참치캔':'https://link.coupang.com/a/esIeJxrIqq',
+  '야채믹스':'https://link.coupang.com/a/esIfaN9Bds',
+  '고추장':'https://link.coupang.com/a/esIfOYSHwO',
+  '오이':'https://link.coupang.com/a/esIgnItloi',
+  '김밥용 김':'https://link.coupang.com/a/esIgRAYAj6',
+  '냉동 새우':'https://link.coupang.com/a/esIhEHduhg',
+  '돼지 안심':'https://link.coupang.com/a/esIit2U0k0',
+  '쌈채소':'https://link.coupang.com/a/esIiSX4nyS',
+  '쌈장':'https://link.coupang.com/a/esIjtXJAho',
+  '두부면':'https://link.coupang.com/a/esIjU8cic0',
+  '토마토 파스타소스':'https://link.coupang.com/a/esIkAXxRSu',
+  '냉동 대구살':'https://link.coupang.com/a/esIleovP5w',
+  '양파':'https://link.coupang.com/a/esIlN6U4Hs',
+  '스테이크 소스':'https://link.coupang.com/a/esImhuTeyO',
+  '손질 오징어':'https://link.coupang.com/a/esImI0mf7c',
+  '양배추':'https://link.coupang.com/a/esIm982nbE',
+  '아스파라거스':'https://link.coupang.com/a/esInzfbFzo',
+  '닭안심':'https://link.coupang.com/a/esIn2s1gPc',
+  '카레가루':'https://link.coupang.com/a/esIoGgcn5U',
+  '모둠 버섯':'https://link.coupang.com/a/esIo6PoDUi',
+  '알배추':'https://link.coupang.com/a/esIpEnXngq',
+  '훈제오리':'https://link.coupang.com/a/esIqeBA3lA',
+  '조미김':'https://link.coupang.com/a/esIqG4eN52',
+  '스트링치즈':'https://link.coupang.com/a/esIrcYGnxA',
+  '땅콩버터':'https://link.coupang.com/a/esIrEIgUGy',
 };
 function ytLink(q){ return 'https://www.youtube.com/results?search_query='+encodeURIComponent(q); }
 function coupangSearch(q){ return 'https://www.coupang.com/np/search?q='+encodeURIComponent(q); }
