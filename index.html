@@ -128,6 +128,7 @@
         </div>
         <div class="stat">
           <div class="line"><span>목표</span><b id="sTarget">- kcal</b></div>
+          <div class="line"><span>🚶 활동 보너스</span><b id="sBurn" style="color:var(--good)">+0</b></div>
           <div class="line"><span>섭취</span><b id="sEaten">0 kcal</b></div>
           <div class="line"><span>남은 양</span><b id="sLeft">- kcal</b></div>
         </div>
@@ -138,6 +139,16 @@
         <div><small>지방</small><b id="mF">0g</b></div>
       </div>
       <div class="note" id="homeNote">먼저 <b>내 정보</b>를 입력하면 하루 목표 칼로리가 계산됩니다.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>오늘 걸음 수 🚶</h2>
+      <p style="font-size:12px;color:var(--sub);margin-bottom:4px">폰 만보기(삼성헬스 등)의 걸음 수를 입력하면 소모 칼로리만큼 목표가 늘어나요.</p>
+      <div class="row" style="align-items:flex-end">
+        <div><label>걸음 수</label><input id="iSteps" type="number" placeholder="예: 8500" /></div>
+        <div style="flex:0 0 auto"><button class="btn sm" id="addSteps" style="margin-bottom:1px">반영</button></div>
+      </div>
+      <div class="note" id="stepsNote" style="display:none"></div>
     </div>
 
     <div class="card">
@@ -337,6 +348,23 @@ function macros(target){
   return { p: Math.round(target*0.30/4), f: Math.round(target*0.25/9), c: Math.round(target*0.45/4) };
 }
 
+/* ---------- 걸음 수 → 소모 칼로리 ---------- */
+function getSteps(){ ensureToday(); return parseInt(localStorage.getItem('fk_steps_'+curDate)||'0',10); }
+function stepsKcal(steps){
+  // 대략 걸음당 0.0005 × 체중(kg) kcal — 75kg 기준 1만보 ≈ 375kcal
+  const w = DB.profile ? DB.profile.weight : 70;
+  return Math.round(steps * w * 0.0005);
+}
+document.getElementById('addSteps').onclick=()=>{
+  const v=parseInt(document.getElementById('iSteps').value,10);
+  if(!v||v<0||v>100000){toast('걸음 수를 입력하세요');return}
+  ensureToday();
+  localStorage.setItem('fk_steps_'+curDate, v);
+  document.getElementById('iSteps').value='';
+  toast(v.toLocaleString()+'보 반영! 목표 +'+stepsKcal(v)+'kcal 🚶');
+  renderHome();
+};
+
 /* ---------- 끼니 자동 분류 ---------- */
 function mealSlot(timeStr){
   const h = parseInt((timeStr||'12:00').slice(0,2),10);
@@ -470,9 +498,16 @@ function renderHome(){
   document.getElementById('mP').textContent=pp+'g';
   document.getElementById('mF').textContent=ff+'g';
   document.getElementById('sEaten').textContent=eaten+' kcal';
+  const steps=getSteps();
+  const burn=stepsKcal(steps);
+  document.getElementById('sBurn').textContent = burn>0 ? '+'+burn+' kcal' : '+0';
+  const sn=document.getElementById('stepsNote');
+  if(steps>0){ sn.style.display='block';
+    sn.innerHTML='오늘 <b>'+steps.toLocaleString()+'보</b> · 약 <b>'+burn+'kcal</b> 소모 → 목표에 더해졌어요'+(steps>=10000?' · 만보 달성! 🎉':'');
+  }else sn.style.display='none';
   let pct=0,target=0;
-  if(p){const r=calcTarget(p);target=r.target;pct=Math.min(999,Math.round(eaten/target*100));
-    document.getElementById('sTarget').textContent=target+' kcal';
+  if(p){const r=calcTarget(p);target=r.target+burn;pct=Math.min(999,Math.round(eaten/target*100));
+    document.getElementById('sTarget').textContent=target+' kcal'+(burn>0?' (보너스 포함)':'');
     document.getElementById('sLeft').textContent=(target-eaten)+' kcal';
     document.getElementById('homeNote').innerHTML= eaten>target
       ? '⚠️ 오늘 목표를 <b>초과</b>했어요. 가벼운 산책이나 다음 끼니를 줄여보세요.'
