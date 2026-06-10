@@ -194,7 +194,8 @@
     <div class="card">
       <h2><span class="dot"></span>오늘의 맞춤 식단</h2>
       <p style="font-size:12px;color:var(--sub)">남은 목표 칼로리에 맞춰 식단을 구성합니다.</p>
-      <button class="btn ghost" id="genPlan">식단 새로 짜기 🔄</button>
+      <button class="btn ghost" id="genPlan">식단 새로 짜기 🔄 (1·2·3안)</button>
+      <button class="btn" id="aiPlan" style="display:none">🤖 AI 맞춤 식단 받기</button>
       <div id="planOut" style="margin-top:14px"></div>
     </div>
   </section>
@@ -711,24 +712,45 @@ const MEALS={
     {n:'오트밀 + 블루베리',k:280,t:'5분',ing:['오트밀','냉동 블루베리']},
     {n:'계란 2개 + 통밀토스트',k:320,t:'10분',ing:['계란 30구','통밀 식빵']},
     {n:'그릭요거트 + 견과',k:260,t:'3분',ing:['그릭요거트','믹스넛']},
-    {n:'단백질 쉐이크 + 바나나',k:300,t:'3분',ing:['단백질 파우더 1kg','바나나']}
+    {n:'단백질 쉐이크 + 바나나',k:300,t:'3분',ing:['단백질 파우더 1kg','바나나']},
+    {n:'고구마 + 삶은계란 2개',k:290,t:'10분',ing:['고구마','계란 30구']},
+    {n:'두유 + 사과 + 아몬드',k:270,t:'2분',ing:['무가당 두유','사과','아몬드']},
+    {n:'닭가슴살 샌드위치',k:350,t:'10분',ing:['통밀 식빵','냉동 닭가슴살 1kg','양상추']},
+    {n:'오트 바나나 팬케이크',k:330,t:'15분',ing:['오트밀','바나나','계란 30구']},
+    {n:'아보카도 에그 토스트',k:340,t:'10분',ing:['통밀 식빵','아보카도','계란 30구']},
+    {n:'프로틴 그래놀라 + 우유',k:310,t:'2분',ing:['프로틴 그래놀라','우유']}
   ],
   l:[
     {n:'닭가슴살 샐러드볼',k:430,t:'15분',ing:['냉동 닭가슴살 1kg','샐러드 채소','발사믹 드레싱']},
     {n:'현미밥 + 두부조림',k:480,t:'25분',ing:['현미','두부','간장']},
     {n:'연어 포케',k:460,t:'15분',ing:['생연어','샐러드 채소','현미']},
-    {n:'잡곡밥 + 닭가슴살 + 나물',k:520,t:'20분',ing:['잡곡','냉동 닭가슴살 1kg','시금치']}
+    {n:'잡곡밥 + 닭가슴살 + 나물',k:520,t:'20분',ing:['잡곡','냉동 닭가슴살 1kg','시금치']},
+    {n:'참치 야채 비빔밥',k:510,t:'15분',ing:['참치캔','현미','야채믹스','고추장']},
+    {n:'곤약면 비빔국수 + 계란',k:380,t:'15분',ing:['곤약면','계란 30구','오이','고추장']},
+    {n:'닭가슴살 김밥',k:450,t:'25분',ing:['냉동 닭가슴살 1kg','김밥용 김','현미']},
+    {n:'새우 브로콜리 볶음밥',k:470,t:'20분',ing:['냉동 새우','손질 브로콜리 500g','현미']},
+    {n:'돼지안심 수육 + 쌈채소',k:490,t:'30분',ing:['돼지 안심','쌈채소','쌈장']},
+    {n:'두부면 토마토 파스타',k:440,t:'20분',ing:['두부면','토마토 파스타소스','닭가슴살 소시지']}
   ],
   d:[
     {n:'소고기 야채볶음 + 곤약밥',k:420,t:'20분',ing:['소고기 불고기용','곤약밥 10팩','야채믹스']},
     {n:'대구살 구이 + 브로콜리',k:380,t:'20분',ing:['냉동 대구살','손질 브로콜리 500g']},
     {n:'두부 스테이크',k:350,t:'15분',ing:['두부','양파','스테이크 소스']},
-    {n:'닭가슴살 스테이크 + 야채',k:400,t:'15분',ing:['냉동 닭가슴살 1kg','손질 브로콜리 500g']}
+    {n:'닭가슴살 스테이크 + 야채',k:400,t:'15분',ing:['냉동 닭가슴살 1kg','손질 브로콜리 500g']},
+    {n:'오징어볶음 + 양배추쌈',k:390,t:'20분',ing:['손질 오징어','양배추','고추장']},
+    {n:'연어 구이 + 아스파라거스',k:430,t:'20분',ing:['생연어','아스파라거스']},
+    {n:'닭안심 라이트커리 + 곤약밥',k:440,t:'25분',ing:['닭안심','카레가루','곤약밥 10팩']},
+    {n:'버섯 두부 전골',k:330,t:'25분',ing:['모둠 버섯','두부','알배추']},
+    {n:'훈제오리 샐러드',k:450,t:'10분',ing:['훈제오리','샐러드 채소']},
+    {n:'계란찜 + 잡곡밥 + 김',k:380,t:'20분',ing:['계란 30구','잡곡','조미김']}
   ],
   s:[
     {n:'바나나 + 아몬드',k:180,t:'1분',ing:['바나나','아몬드']},
     {n:'단백질 쉐이크',k:150,t:'2분',ing:['단백질 파우더 1kg']},
     {n:'방울토마토 + 치즈',k:120,t:'1분',ing:['방울토마토','스트링치즈']},
+    {n:'사과 + 땅콩버터',k:200,t:'2분',ing:['사과','땅콩버터']},
+    {n:'닭가슴살 소시지',k:110,t:'2분',ing:['닭가슴살 소시지']},
+    {n:'그릭요거트 미니컵',k:130,t:'1분',ing:['그릭요거트']},
     {n:'(간식 생략)',k:0,t:'',ing:[]}
   ],
 };
@@ -736,46 +758,108 @@ const ING_EMOJI={'오트밀':'🥣','냉동 블루베리':'🫐','계란 30구':
   '단백질 파우더 1kg':'🥛','바나나':'🍌','냉동 닭가슴살 1kg':'🍗','샐러드 채소':'🥬','발사믹 드레싱':'🫙','현미':'🌾',
   '두부':'🧈','간장':'🫙','생연어':'🐟','잡곡':'🌾','시금치':'🥬','소고기 불고기용':'🥩','곤약밥 10팩':'🍚',
   '야채믹스':'🥗','냉동 대구살':'🐟','손질 브로콜리 500g':'🥦','양파':'🧅','스테이크 소스':'🫙','아몬드':'🥜',
-  '방울토마토':'🍅','스트링치즈':'🧀'};
+  '방울토마토':'🍅','스트링치즈':'🧀','고구마':'🍠','무가당 두유':'🥛','사과':'🍎','양상추':'🥬','아보카도':'🥑',
+  '프로틴 그래놀라':'🥣','우유':'🥛','참치캔':'🥫','고추장':'🌶️','곤약면':'🍜','오이':'🥒','김밥용 김':'🍙',
+  '냉동 새우':'🦐','돼지 안심':'🥩','쌈채소':'🥬','쌈장':'🫙','두부면':'🍜','토마토 파스타소스':'🍅',
+  '닭가슴살 소시지':'🌭','손질 오징어':'🦑','양배추':'🥬','아스파라거스':'🥬','닭안심':'🍗','카레가루':'🍛',
+  '모둠 버섯':'🍄','알배추':'🥬','훈제오리':'🦆','조미김':'🍙','땅콩버터':'🥜'};
 function getPlan(){
   const p=JSON.parse(localStorage.getItem('fk_plan')||'null');
   return (p && p.d===todayStr()) ? p : null;
 }
-document.getElementById('genPlan').onclick=()=>{
+const SLOT_EM={'아침':'🌅','점심':'☀️','저녁':'🌙','간식':'🍎'};
+function planGoal(){
   ensureToday();
   const p=DB.profile;
   const target = p?calcTarget(p).target:1800;
   const eaten = DB.log.reduce((a,f)=>a+f.kcal,0);
   const remain = target-eaten;
-  // 남은 칼로리에 가장 근접한 조합 탐색 (남은 게 너무 적으면 하루 전체 기준)
   const goal = remain>=600 ? remain : target;
-  let best=null,bestDiff=1e9;
-  for(let i=0;i<120;i++){
-    const b=MEALS.b[Math.floor(Math.random()*MEALS.b.length)];
-    const l=MEALS.l[Math.floor(Math.random()*MEALS.l.length)];
-    const d=MEALS.d[Math.floor(Math.random()*MEALS.d.length)];
-    const s=MEALS.s[Math.floor(Math.random()*MEALS.s.length)];
-    const sum=b.k+l.k+d.k+s.k;
-    const diff=Math.abs(goal-sum)+(sum>goal?80:0); // 초과엔 패널티
-    if(diff<bestDiff){bestDiff=diff;best={b,l,d,s,sum};}
-  }
-  const {b,l,d,s,sum}=best;
-  // 식단 저장 → 요리·재료 탭이 이 식단 기준으로 바뀜
-  localStorage.setItem('fk_plan', JSON.stringify({d:todayStr(), items:[
-    {slot:'아침',em:'🌅',...b},{slot:'점심',em:'☀️',...l},{slot:'저녁',em:'🌙',...d},{slot:'간식',em:'🍎',...s}
-  ].filter(m=>m.k>0)}));
-  const block=(t,m,em)=>m.k===0?'':`<div class="meal-block"><div class="mh"><div>${em} ${t}</div><span>${m.k} kcal</span></div>
-    <ul><li>${m.n}</li></ul></div>`;
   const basis = remain>=600
     ? `오늘 이미 ${eaten}kcal 섭취 → <b>남은 ${remain}kcal</b>에 맞춰 구성`
     : (eaten>0?`오늘 남은 칼로리(${remain}kcal)가 적어 <b>내일 하루 기준(${target}kcal)</b>으로 구성`:`하루 목표 <b>${target}kcal</b> 기준 구성`);
+  return {goal,basis};
+}
+function pickCombo(goal,avoid){
+  const rand=a=>a[Math.floor(Math.random()*a.length)];
+  let best=null,bestDiff=1e9;
+  for(let i=0;i<250;i++){
+    const b=rand(MEALS.b),l=rand(MEALS.l),d=rand(MEALS.d),s=rand(MEALS.s);
+    const sum=b.k+l.k+d.k+s.k;
+    const overlap=[b.n,l.n,d.n].filter(n=>avoid.has(n)).length; // 이전 안과 겹치면 패널티 → 다양성
+    const diff=Math.abs(goal-sum)+(sum>goal?80:0)+overlap*120;
+    if(diff<bestDiff){bestDiff=diff;best={b,l,d,s,sum};}
+  }
+  return best;
+}
+function comboToItems(c){
+  return [{slot:'아침',em:'🌅',...c.b},{slot:'점심',em:'☀️',...c.l},
+          {slot:'저녁',em:'🌙',...c.d},{slot:'간식',em:'🍎',...c.s}].filter(m=>m.k>0);
+}
+window.selectPlan=function(idx){
+  const cands=window._cands||[]; const c=cands[idx]; if(!c)return;
+  window._selPlan=idx;
+  localStorage.setItem('fk_plan', JSON.stringify({d:todayStr(), items:c.items}));
+  const {goal,basis}=window._planCtx;
+  const tabs=`<div class="seg" style="margin:0 0 12px">`+cands.map((x,i)=>
+    `<button class="${i===idx?'on':''}" onclick="selectPlan(${i})">${x.label}</button>`).join('')+`</div>`;
+  const blocks=c.items.map(m=>`<div class="meal-block"><div class="mh"><div>${m.em} ${m.slot}</div><span>${m.k} kcal</span></div>
+    <ul><li><span>${m.n}</span><span>${m.t||''}</span></li></ul></div>`).join('');
   document.getElementById('planOut').innerHTML=
-    `<div class="note" style="margin:0 0 12px">${basis}</div>`+
-    block('아침',b,'🌅')+block('점심',l,'☀️')+block('저녁',d,'🌙')+block('간식',s,'🍎')+
+    `<div class="note" style="margin:0 0 12px">${basis}</div>`+tabs+blocks+
     `<div class="card" style="background:var(--card2)"><div style="display:flex;justify-content:space-between;font-size:14px">
-      <b>합계</b><b style="color:var(--pri)">${sum} kcal</b></div>
-      <div class="note">기준 ${goal}kcal 대비 ${Math.round(sum/goal*100)}% · ${sum<=goal?'목표 범위 내 👍':'약간 초과'}</div></div>
+      <b>합계</b><b style="color:var(--pri)">${c.sum} kcal</b></div>
+      <div class="note">기준 ${goal}kcal 대비 ${Math.round(c.sum/goal*100)}% · ${c.sum<=goal?'목표 범위 내 👍':'약간 초과'}</div></div>
     <button class="btn" onclick="document.querySelector('nav button[data-v=shop]').click()">이 식단의 요리법·재료 보기 🛒</button>`;
+};
+document.getElementById('genPlan').onclick=()=>{
+  const ctx=planGoal(); window._planCtx=ctx;
+  const avoid=new Set(); const cands=[];
+  for(let i=0;i<3;i++){
+    const c=pickCombo(ctx.goal,avoid);
+    [c.b.n,c.l.n,c.d.n].forEach(n=>avoid.add(n));
+    cands.push({label:(i+1)+'안', items:comboToItems(c), sum:c.sum});
+  }
+  window._cands=cands;
+  selectPlan(0);
+};
+/* AI 맞춤 식단 (API 키 필요) */
+document.getElementById('aiPlan').onclick=async()=>{
+  if(!DB.apiKey){toast('내정보에서 API 키를 먼저 저장하세요');return}
+  const btn=document.getElementById('aiPlan');
+  btn.textContent='AI가 식단 짜는 중...'; btn.disabled=true;
+  const ctx=planGoal(); window._planCtx=ctx;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'content-type':'application/json','x-api-key':DB.apiKey,
+        'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-opus-4-8', max_tokens:1500,
+        messages:[{role:'user',content:
+          `합계 약 ${ctx.goal}kcal(±5%)의 한국식 다이어트 식단을 짜주세요. 아침/점심/저녁/간식 4끼.\n조건: 고단백, 조리 30분 이내, 한국 마트·쿠팡에서 쉽게 사는 재료, 매번 색다른 메뉴로 창의적으로.\n각 끼니 필드: slot(아침|점심|저녁|간식), n(메뉴명), k(kcal 정수), t(조리시간 예 "15분"), ing(쿠팡 검색용 재료명 배열 2~4개).`}],
+        output_config:{format:{type:'json_schema',schema:{
+          type:'object',
+          properties:{meals:{type:'array',items:{
+            type:'object',
+            properties:{slot:{type:'string',enum:['아침','점심','저녁','간식']},
+              n:{type:'string'},k:{type:'integer'},t:{type:'string'},
+              ing:{type:'array',items:{type:'string'}}},
+            required:['slot','n','k','t','ing'],additionalProperties:false}}},
+          required:['meals'],additionalProperties:false}}}
+      })
+    });
+    if(!r.ok) throw new Error('API '+r.status);
+    const data=await r.json();
+    const out=JSON.parse((data.content||[]).find(b=>b.type==='text').text);
+    const items=out.meals.map(m=>({slot:m.slot,em:SLOT_EM[m.slot]||'🍽️',n:m.n,k:m.k,t:m.t,ing:m.ing}));
+    const sum=items.reduce((a,m)=>a+m.k,0);
+    window._cands=(window._cands||[]).filter(c=>c.label.indexOf('AI')!==0);
+    window._cands.push({label:'AI ✨',items,sum});
+    selectPlan(window._cands.length-1);
+    toast('AI 식단 도착! 🤖');
+  }catch(e){ toast('AI 식단 실패: '+e.message); }
+  btn.textContent='🤖 AI 맞춤 식단 받기'; btn.disabled=false;
 };
 
 /* ---------- 요리·유통 ---------- */
@@ -834,6 +918,7 @@ function updateApiNote(){
     el.className='note';
     el.innerHTML='※ 데모 모드: 음식 인식이 임시 데이터로 동작합니다. <b>내정보 → AI 사진 분석 연결</b>에서 API 키를 넣으면 실제 분석됩니다.';
   }
+  document.getElementById('aiPlan').style.display = DB.apiKey ? 'block' : 'none';
 }
 document.getElementById('iKey').value = DB.apiKey;
 document.getElementById('saveKey').onclick=()=>{
